@@ -159,3 +159,21 @@ class EmpresaSaida(BaseModel):
     codigo: str
     nome: str
     linhas: list[LinhaSaida]
+
+
+# --------------------------------------------------------------------------- indicadores
+
+
+class Indicadores(BaseModel):
+    """Números do dashboard, calculados sobre os mesmos filtros da listagem."""
+
+    programadas: int = Field(description="Viagens cadastradas no filtro")
+    realizadas: int
+    nao_realizadas: int
+    percentual_cumprimento: float | None = Field(
+        description="(realizadas / programadas) x 100, com 2 casas; null quando não há viagens"
+    )
+    sem_dados: bool = Field(description="true quando o filtro não tem viagens (exibir 'Sem dados')")
+    motivos: dict[MotivoNaoRealizacao, int] = Field(
+        description="Distribuição das não realizadas; os quatro motivos sempre presentes"
+    )
