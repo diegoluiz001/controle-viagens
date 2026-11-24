@@ -1,0 +1,18 @@
+# Segredos — nunca versionar
+.env
+.env.*
+!.env.example
+
+# Ambiente virtual e caches do Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Editores e sistema
+.vscode/
+.idea/
+.DS_Store
+
+# Material do processo seletivo (enunciado não deve ser publicado)
+Pacote_Teste_Desenvolvimento/
