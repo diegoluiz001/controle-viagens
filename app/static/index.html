@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Controle de Viagens</title>
+  <link rel="stylesheet" href="/static/styles.css?v=4">
+</head>
+<body>
+  <header class="topo">
+    <h1>Controle de Viagens</h1>
+    <a href="/docs" target="_blank" rel="noopener">Documentação da API</a>
+  </header>
+
+  <main>
+    <!-- Aviso global (servidor acordando, erros de conexão, confirmações) -->
+    <div id="aviso" class="aviso" role="status" aria-live="polite" hidden></div>
+
+    <!-- Filtros: aplicados igualmente à tabela e aos indicadores -->
+    <section class="painel" aria-labelledby="titulo-filtros">
+      <h2 id="titulo-filtros" class="visualmente-oculto">Filtros</h2>
+      <form id="form-filtros" class="filtros" novalidate>
+        <label>Data inicial
+          <input type="date" name="data_inicio" id="filtro-inicio">
+        </label>
+        <label>Data final
+          <input type="date" name="data_fim" id="filtro-fim">
+        </label>
+        <label>Empresa
+          <select name="empresa_id" id="filtro-empresa">
+            <option value="">Todas</option>
+          </select>
+        </label>
+        <label>Linha
+          <select name="linha_id" id="filtro-linha">
+            <option value="">Todas</option>
+          </select>
+        </label>
+        <div class="filtros-acoes">
+          <button type="submit" class="botao primario">Aplicar</button>
+          <button type="button" class="botao" id="limpar-filtros">Limpar</button>
+        </div>
+        <p class="erro-campo filtros-erro" id="erro-filtros" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <!-- Indicadores -->
+    <section class="painel" aria-labelledby="titulo-indicadores">
+      <h2 id="titulo-indicadores">Indicadores</h2>
+      <div class="cards">
+        <div class="card"><span class="card-rotulo">Programadas</span><strong id="ind-programadas">–</strong></div>
+        <div class="card ok"><span class="card-rotulo">Realizadas</span><strong id="ind-realizadas">–</strong></div>
+        <div class="card falha"><span class="card-rotulo">Não realizadas</span><strong id="ind-nao-realizadas">–</strong></div>
+        <div class="card destaque"><span class="card-rotulo">% de cumprimento</span><strong id="ind-percentual">–</strong></div>
+      </div>
+      <h3>Não realizadas por motivo</h3>
+      <ul id="motivos" class="motivos"></ul>
+    </section>
+
+    <!-- Listagem -->
+    <section class="painel" aria-labelledby="titulo-viagens">
+      <div class="cabecalho-secao">
+        <h2 id="titulo-viagens">Viagens <span id="contagem" class="contagem"></span></h2>
+        <button type="button" class="botao primario" id="nova-viagem">+ Nova viagem</button>
+      </div>
+      <div class="tabela-rolagem">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">Data</th>
+              <th scope="col">Horário</th>
+              <th scope="col">Empresa</th>
+              <th scope="col">Linha</th>
+              <th scope="col">Veículo</th>
+              <th scope="col">Status</th>
+              <th scope="col">Motivo</th>
+              <th scope="col"><span class="visualmente-oculto">Ações</span></th>
+            </tr>
+          </thead>
+          <tbody id="corpo-tabela"></tbody>
+        </table>
+      </div>
+      <nav class="paginacao" aria-label="Paginação">
+        <button type="button" class="botao" id="pagina-anterior">‹ Anterior</button>
+        <span id="pagina-info"></span>
+        <button type="button" class="botao" id="pagina-proxima">Próxima ›</button>
+      </nav>
+    </section>
+  </main>
+
+  <!-- Formulário de criação/edição -->
+  <dialog id="dialogo-viagem" aria-labelledby="titulo-dialogo">
+    <form id="form-viagem" novalidate>
+      <h2 id="titulo-dialogo">Nova viagem</h2>
+      <p id="form-id" class="form-id" hidden></p>
+
+      <div class="grade-form">
+        <label>Empresa
+          <select id="campo-empresa" required>
+            <option value="">Selecione…</option>
+          </select>
+          <span class="erro-campo" data-erro="empresa"></span>
+        </label>
+        <label>Linha
+          <select name="linha_id" id="campo-linha" required>
+            <option value="">Selecione a empresa…</option>
+          </select>
+          <span class="erro-campo" data-erro="linha_id"></span>
+        </label>
+        <label>Data
+          <input type="date" name="data_viagem" id="campo-data" required>
+          <span class="erro-campo" data-erro="data_viagem"></span>
+        </label>
+        <label>Horário programado
+          <input type="time" name="horario_programado" id="campo-horario" step="60" required>
+          <span class="erro-campo" data-erro="horario_programado"></span>
+        </label>
+        <label>Veículo
+          <input type="text" name="veiculo" id="campo-veiculo" maxlength="30" required autocomplete="off">
+          <span class="erro-campo" data-erro="veiculo"></span>
+        </label>
+        <label>Status
+          <select name="status" id="campo-status" required>
+            <option value="REALIZADA">Realizada</option>
+            <option value="NAO_REALIZADA">Não realizada</option>
+          </select>
+          <span class="erro-campo" data-erro="status"></span>
+        </label>
+        <label class="campo-largo">Motivo da não realização
+          <select name="motivo_nao_realizacao" id="campo-motivo">
+            <option value="">Selecione…</option>
+          </select>
+          <span class="dica" id="dica-motivo">Somente para viagens não realizadas.</span>
+          <span class="erro-campo" data-erro="motivo_nao_realizacao"></span>
+        </label>
+      </div>
+
+      <p class="erro-campo erro-geral" id="erro-form" aria-live="polite"></p>
+      <div class="dialogo-acoes">
+        <button type="button" class="botao" id="cancelar-form">Cancelar</button>
+        <button type="submit" class="botao primario" id="salvar-form">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Confirmação de exclusão -->
+  <dialog id="dialogo-excluir" aria-labelledby="titulo-excluir">
+    <form method="dialog">
+      <h2 id="titulo-excluir">Excluir viagem</h2>
+      <p id="texto-excluir"></p>
+      <p class="erro-campo erro-geral" id="erro-excluir" aria-live="polite"></p>
+      <div class="dialogo-acoes">
+        <button value="cancelar" class="botao">Cancelar</button>
+        <button type="button" class="botao perigo" id="confirmar-excluir">Excluir</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/static/app.js?v=2"></script>
+</body>
+</html>
