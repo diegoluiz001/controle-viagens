@@ -94,3 +94,31 @@ def db(engine_teste):
         conexao.execute(text("ALTER SEQUENCE viagem_codigo_seq RESTART"))
     with Session(engine_teste) as sessao:
         yield sessao
+
+
+@pytest.fixture
+def base_importada(db):
+    """Banco de teste limpo + os 180 registros do CSV. Devolve os registros lidos."""
+    from app.services.importacao import importar, ler_csv
+
+    registros = ler_csv()
+    importar(db, registros)
+    return registros
+
+
+@pytest.fixture
+def cliente(db, engine_teste):
+    """Cliente HTTP da API apontando para o banco de teste (uma sessão por requisição)."""
+    from fastapi.testclient import TestClient
+
+    from app.database import get_db
+    from app.main import app
+
+    def _sessao_de_teste():
+        with Session(engine_teste) as sessao:
+            yield sessao
+
+    app.dependency_overrides[get_db] = _sessao_de_teste
+    with TestClient(app) as cliente_http:
+        yield cliente_http
+    app.dependency_overrides.pop(get_db, None)

@@ -2,7 +2,7 @@ import logging
 
 from fastapi import FastAPI
 
-from app.routers import health
+from app.routers import empresas, health, viagens
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
@@ -13,3 +13,5 @@ app = FastAPI(
 )
 
 app.include_router(health.router)
+app.include_router(empresas.router)
+app.include_router(viagens.router)
