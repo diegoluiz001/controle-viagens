@@ -33,3 +33,14 @@ def test_textos_do_banco_nunca_entram_como_html():
     """Proteção contra XSS: o script não usa innerHTML para montar a página."""
     script = cliente.get("/static/app.js").text
     assert "innerHTML" not in script.replace("(nunca innerHTML)", "")
+
+
+def test_robots_txt_bloqueia_indexacao():
+    resposta = cliente.get("/robots.txt")
+    assert resposta.status_code == 200
+    assert "Disallow: /" in resposta.text
+    assert 'content="noindex, nofollow"' in cliente.get("/").text
+
+
+def test_favicon_existe():
+    assert cliente.get("/favicon.ico").status_code == 200

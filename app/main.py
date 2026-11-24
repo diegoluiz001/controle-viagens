@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 
 from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.routers import empresas, health, indicadores, viagens
@@ -29,3 +29,14 @@ app.mount("/static", StaticFiles(directory=PASTA_ESTATICA), name="static")
 @app.get("/", include_in_schema=False)
 def interface():
     return FileResponse(PASTA_ESTATICA / "index.html")
+
+
+@app.get("/robots.txt", include_in_schema=False, response_class=PlainTextResponse)
+def robots():
+    """Pede aos buscadores para não indexar a demonstração (não é controle de acesso)."""
+    return "User-agent: *\nDisallow: /\n"
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    return FileResponse(PASTA_ESTATICA / "favicon.svg", media_type="image/svg+xml")
