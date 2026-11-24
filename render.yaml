@@ -1,0 +1,18 @@
+# Configuração do serviço no Render (Blueprint: infraestrutura como código).
+# Em Render > New > Blueprint, o serviço é criado a partir deste arquivo.
+services:
+  - type: web
+    name: controle-viagens
+    runtime: python
+    plan: free
+    region: virginia            # mesma região (US East) do banco no Neon
+    buildCommand: pip install -r requirements.txt
+    # A migration roda a cada start (não faz nada se o banco já estiver atualizado).
+    # A importação do CSV NÃO roda aqui: é feita manualmente, uma única vez
+    # (ver README), para não reinserir viagens excluídas a cada reinício.
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true            # cada push na branch main gera um novo deploy
+    envVars:
+      - key: DATABASE_URL
+        sync: false             # segredo: preenchido no painel do Render, nunca no git
